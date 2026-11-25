@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/open_food_facts_service.dart';
 import '../widgets/glass_card.dart';
+import 'scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,6 +55,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+    /// Ouvre la caméra, attend un code-barres, puis lance la recherche.
+  Future<void> _scan() async {
+    final code = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const ScannerScreen()),
+    );
+
+    // null = l'utilisateur est revenu en arrière sans scanner
+    if (code == null || !mounted) return;
+
+    _controller.text = code; // on affiche le code dans le champ
+    _search();               // et on lance la recherche
+  }
+
   @override
   void dispose() {
     _controller.dispose(); // libère la mémoire quand l'écran disparaît
@@ -104,7 +119,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildSearchCard(),
+                              const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _loading ? null : _scan,
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('Scanner avec la caméra'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _accent,
+                side: const BorderSide(color: _accent),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSearchCard(),
                   const SizedBox(height: 20),
                   _buildResult(),
                 ],
